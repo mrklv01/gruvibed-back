@@ -1,0 +1,143 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id         Int        @id @default(autoincrement())
+  createdAt  DateTime   @default(now()) @map("created_at")
+  updatedAt  DateTime   @updatedAt @map("updated_at")
+  email      String     @unique
+  login      String     @unique
+  password   String
+  avatarPath String     @default("/uploads/user.png") @map("avatar_path")
+  phone      String     @default("")
+  review     Review[]
+  name       String     @default("")
+  address    String     @default("")
+  isAdmin    Boolean    @default(false)
+  favorite   Favorite[]
+  Order      Order[]
+}
+
+model Product {
+  id                      Int           @id @default(autoincrement())
+  createdAt               DateTime      @default(now()) @map("created_at")
+  updatedAt               DateTime      @updatedAt @map("updated_at")
+  slug                    String        @unique
+  manufacturer            String        @default("") // Производитель
+  capacity                String?       @default("") // Вместимость
+  shape                   String?       @default("") // Форма
+  collection              String?       @default("") // Коллекция
+  transformationMechanism String?       @default("") @map("transformation_mechanism") // Механизм трансформации
+  hardnessLevel           String?       @default("") @map("hardness_level") // Уровень жесткости
+  upholsteryMaterial      String?       @default("") @map("upholstery_material") // Материал обивкиA
+  frameMaterial           String?       @default("") @map("frame_material") // Материал каркаса
+  legMaterial             String?       @default("") @map("leg_material") // Материал ножек
+  color                   String        @default("") // Цвет
+  filler                  String?       @default("") // Наполнитель
+  legColor                String?       @default("") @map("leg_color") // Цвет ножек
+  size                    String        @default("") // Размер
+  cornerLocation          String?       @default("") @map("corner_location") // Расположение угла
+  description             String        @default("") // Описание
+  design                  String?       @default("") // Дизайн
+  springBlock             String?       @default("") @map("spring_block") // Пружинный блок
+  caseMaterial            String?       @default("") @map("case_material") // Материал чехла
+  price                   Int           @default(0)
+  articul                 Int           @default(0)
+  title                   String        @unique @default("")
+  priceWithDiscount       Int           @default(0) @map("price_with_discount")
+  review                  Review[]
+  favorite                Favorite[]
+  OrderItem               OrderItem[]
+  category                Category?     @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  categoryId              Int?          @map("category_id")
+  Manufacturer            Manufacturer? @relation(fields: [manufacturerId], references: [id])
+  manufacturerId          Int?          @map("manufacturer_id")
+  productPath             String        @map("product_path") @default("default.png")
+  count Int? 
+}
+
+model Order {
+  id        Int         @id @default(autoincrement())
+  createdAt DateTime    @default(now()) @map("created_at")
+  updatedAt DateTime    @updatedAt @map("updated_at")
+  status    String
+  items     OrderItem[]
+  user      User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    Int         @map("user_id")
+}
+
+model OrderItem {
+  id        Int      @id @default(autoincrement())
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  count     Int
+  price     Int
+  order     Order?   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  orderId   Int?     @map("order_id")
+  product   Product? @relation(fields: [productId], references: [id], onDelete: Cascade)
+  productId Int?     @map("product_id")
+}
+
+model Category {
+  id        Int        @id @default(autoincrement())
+  createdAt DateTime   @default(now()) @map("created_at")
+  updatedAt DateTime   @updatedAt @map("updated_at")
+  name      String     @unique
+  children  Category[] @relation("SubCategories")
+  parent    Category?  @relation("SubCategories", fields: [parentId], references: [id], onDelete: Cascade)
+  product   Product[]
+  parentId  Int?
+}
+
+model Manufacturer {
+  id        Int       @id @default(autoincrement())
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  name      String    @unique
+  produyct  Product[]
+}
+
+model City {
+  id        Int       @id @default(autoincrement())
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  name      String    @unique
+}
+
+
+model Review {
+  id        Int      @id @default(autoincrement())
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  text      String
+  rating    Int
+  user      User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    Int?     @map("user_id")
+  product   Product? @relation(fields: [productId], references: [id], onDelete: Cascade)
+  productId Int?     @map("product_id")
+}
+
+model Favorite {
+  id        Int      @id @default(autoincrement())
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    Int      @map("user_id")
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  productId Int      @map("product_id")
+}
+
+enum EnumRole {
+  admin
+  user
+  manager
+}
