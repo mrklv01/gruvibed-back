@@ -1,1 +1,1 @@
-worker: nest start
+worker: npm run start
